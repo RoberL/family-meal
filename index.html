@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家庭用餐計畫表</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f6f2;
+    --card: #ffffff;
+    --border: #e5e3dc;
+    --text: #1a1a18;
+    --muted: #6b6a65;
+    --hint: #b0aea8;
+    --green-bg: #e8f5ee;
+    --green: #1a7a45;
+    --red-bg: #fdecea;
+    --red: #c0392b;
+    --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04);
+  }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+  .week-nav { display: flex; align-items: center; gap: 8px; }
+  .week-nav button { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 14px; cursor: pointer; color: var(--muted); font-family: inherit; transition: background 0.15s; }
+  .week-nav button:hover { background: var(--bg); }
+  .week-label { font-size: 14px; font-weight: 500; min-width: 100px; text-align: center; }
+
+  .view-tabs { display: flex; gap: 4px; }
+  .view-tab { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: none; font-size: 13px; font-family: inherit; cursor: pointer; color: var(--muted); transition: all 0.15s; }
+  .view-tab.active { background: var(--text); color: #fff; border-color: var(--text); }
+
+  /* ── Layout ── */
+  main { padding: 20px; max-width: 860px; margin: 0 auto; }
+
+  /* ── Member Selector ── */
+  .member-section { margin-bottom: 20px; }
+  .section-label { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 10px; }
+  .member-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .member-pill {
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 14px; border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    font-size: 14px; font-family: inherit; cursor: pointer;
+    transition: all 0.15s; font-weight: 400; color: var(--text);
+  }
+  .member-pill .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .member-pill.active { border-width: 2px; font-weight: 500; }
+  .member-pill:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+
+  /* ── Fill Table ── */
+  .fill-card {
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .fill-table { width: 100%; border-collapse: collapse; }
+  .fill-table thead th {
+    padding: 10px 12px; font-size: 12px; font-weight: 500;
+    color: var(--muted); text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    letter-spacing: 0.03em;
+  }
+  .fill-table thead th:first-child { text-align: left; }
+  .fill-table tbody tr:not(:last-child) { border-bottom: 1px solid var(--border); }
+  .fill-table tbody tr:hover { background: #fafaf8; }
+  .fill-table td { padding: 10px 12px; vertical-align: middle; text-align: center; }
+  .fill-table td:first-child { text-align: left; }
+  .day-name { font-weight: 500; font-size: 14px; }
+  .day-date { font-size: 11px; color: var(--hint); margin-top: 1px; }
+
+  .toggle-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 42px; height: 32px; border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    font-size: 13px; cursor: pointer; font-family: inherit;
+    transition: all 0.15s; color: var(--hint);
+    font-weight: 400;
+  }
+  .toggle-btn.on {
+    background: var(--green-bg);
+    border-color: #a8d9bc;
+    color: var(--green);
+    font-weight: 700;
+  }
+  .toggle-btn:hover { transform: scale(1.05); }
+
+  .note-input {
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 5px 8px; font-size: 12px; font-family: inherit;
+    background: var(--bg); color: var(--text); width: 100%; max-width: 130px;
+  }
+  .note-input:focus { outline: none; border-color: #aaa; }
+
+  /* ── Summary ── */
+  .summary-card {
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .summary-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .summary-header-title { font-size: 13px; font-weight: 500; color: var(--muted); }
+
+  .sum-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .sum-table th {
+    padding: 9px 8px; text-align: center;
+    color: var(--muted); font-weight: 500; font-size: 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .sum-table th.left { text-align: left; padding-left: 16px; }
+  .sum-table td { padding: 9px 8px; text-align: center; border-bottom: 1px solid var(--border); }
+  .sum-table tr:last-child td { border-bottom: none; }
+  .sum-table td.left { text-align: left; padding-left: 16px; font-weight: 500; }
+  .sum-yes { color: var(--green); font-weight: 700; }
+  .sum-no  { color: var(--hint); }
+  .count-pill {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 12px; font-weight: 600;
+  }
+  .count-pill.has { background: var(--green-bg); color: var(--green); }
+  .count-pill.zero { background: var(--bg); color: var(--hint); }
+  .meal-divider { border-right: 2px solid var(--border); }
+  .note-td { font-size: 11px; color: var(--muted); max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: 8px; }
+
+  /* ── Status bar ── */
+  .status-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    padding: 8px 20px;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--muted);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--hint); flex-shrink: 0; }
+  .status-dot.synced { background: var(--green); }
+  .status-dot.syncing { background: #f0a500; animation: pulse 1s infinite; }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    header { flex-wrap: wrap; }
+    main { padding: 14px; }
+    .fill-table thead th, .fill-table td { padding: 8px 6px; }
+    .sum-table th, .sum-table td { padding: 7px 4px; font-size: 11px; }
+    .note-input { max-width: 80px; }
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo">🍱 家庭飯桌</div>
+    <div class="week-nav">
+      <button onclick="changeWeek(-1)">‹</button>
+      <span class="week-label" id="weekLabel"></span>
+      <button onclick="changeWeek(1)">›</button>
+    </div>
+  </div>
+  <div class="view-tabs">
+    <button class="view-tab active" id="tabFill" onclick="setView('fill')">填寫</button>
+    <button class="view-tab" id="tabSummary" onclick="setView('summary')">彙總表</button>
+  </div>
+</header>
+
+<main>
+  <!-- Fill View -->
+  <div id="fillView">
+    <div class="member-section">
+      <div class="section-label">你是誰？</div>
+      <div class="member-pills" id="memberPills"></div>
+    </div>
+    <div class="fill-card">
+      <table class="fill-table">
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>午餐</th>
+            <th>晚餐</th>
+            <th style="text-align:left">備註</th>
+          </tr>
+        </thead>
+        <tbody id="fillBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Summary View -->
+  <div id="summaryView" class="hidden">
+    <div class="summary-card">
+      <div class="summary-header">
+        <span class="summary-header-title">本週用餐彙總 — 給媽媽 &amp; 印傭</span>
+      </div>
+      <table class="sum-table" id="sumTable"></table>
+    </div>
+  </div>
+</main>
+
+<div class="status-bar">
+  <div class="status-dot" id="statusDot"></div>
+  <span id="statusText">連線中…</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     🔥 STEP 1: 把你的 Firebase config 貼在這裡
+     ═══════════════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getDatabase, ref, onValue, set, get } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+// ▼▼▼ 把這整段換成你從 Firebase Console 拿到的 config ▼▼▼
+const firebaseConfig = {
+  apiKey: "AIzaSyCeszklpOunCReunK5jjTsztAU7iEgWCoQ",
+  authDomain: "family-meal-89d1e.firebaseapp.com",
+  databaseURL: "https://family-meal-89d1e-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "family-meal-89d1e",
+  storageBucket: "family-meal-89d1e.firebasestorage.app",
+  messagingSenderId: "721568861768",
+  appId: "1:721568861768:web:f39551b117c4318a6ed27d"
+};
+// ▲▲▲ 換到這裡為止 ▲▲▲
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+// ══════════════════════════════════════════════════
+const MEMBERS = [
+  { key: 'A', name: '大哥',   color: '#185FA5', bg: '#ddeaf7' },
+  { key: 'B', name: '二姊',   color: '#0F6E56', bg: '#d6f0e7' },
+  { key: 'C', name: '小妹',   color: '#993C1D', bg: '#fbe5dc' },
+  { key: 'D', name: 'Tom',    color: '#6C4DB8', bg: '#ece8f8' },
+];
+const DAYS = ['週一','週二','週三','週四','週五','週六','週日'];
+
+let weekOffset = 0;
+let activeMember = 'A';
+let localData = {};
+let view = 'fill';
+
+// ── Utilities ──────────────────────────────────
+function getMonday(offset) {
+  const d = new Date();
+  const day = d.getDay() || 7;
+  d.setDate(d.getDate() - day + 1 + offset * 7);
+  d.setHours(0,0,0,0);
+  return d;
+}
+function weekKey(offset) {
+  return getMonday(offset).toISOString().slice(0,10);
+}
+function weekDates(offset) {
+  const mon = getMonday(offset);
+  return DAYS.map((_,i) => {
+    const d = new Date(mon); d.setDate(mon.getDate()+i); return d;
+  });
+}
+function fmtLabel(offset) {
+  const ds = weekDates(offset);
+  const f  = d => `${d.getMonth()+1}/${d.getDate()}`;
+  return `${f(ds[0])} – ${f(ds[6])}`;
+}
+function dbPath(offset) { return `meals/${weekKey(offset)}`; }
+
+// ── Firebase sync ───────────────────────────────
+let unsubscribe = null;
+
+function subscribe() {
+  if (unsubscribe) unsubscribe();
+  setStatus('syncing', '同步中…');
+  const r = ref(db, dbPath(weekOffset));
+  unsubscribe = onValue(r, snap => {
+    localData = snap.val() || {};
+    setStatus('synced', '已同步');
+    render();
+  }, () => setStatus('error', '離線 — 資料暫存本機'));
+}
+
+function writeVal(path, value) {
+  setStatus('syncing', '儲存中…');
+  set(ref(db, path), value)
+    .then(()  => setStatus('synced', '已儲存'))
+    .catch(()  => setStatus('error', '儲存失敗'));
+}
+
+function setStatus(state, msg) {
+  const dot  = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  dot.className  = 'status-dot' + (state === 'synced' ? ' synced' : state === 'syncing' ? ' syncing' : '');
+  text.textContent = msg;
+}
+
+// ── Data helpers ────────────────────────────────
+function getVal(member, di, meal) {
+  return !!(localData[member]?.[di]?.[meal]);
+}
+function getNote(member, di) {
+  return localData[member]?.[di]?.note || '';
+}
+function toggleVal(member, di, meal) {
+  const newVal = !getVal(member, di, meal);
+  if (!localData[member])       localData[member] = {};
+  if (!localData[member][di])   localData[member][di] = {};
+  localData[member][di][meal] = newVal;
+  writeVal(`${dbPath(weekOffset)}/${member}/${di}/${meal}`, newVal);
+  renderFill();
+  renderSummary();
+}
+function saveNote(member, di, val) {
+  if (!localData[member])     localData[member] = {};
+  if (!localData[member][di]) localData[member][di] = {};
+  localData[member][di].note = val;
+  writeVal(`${dbPath(weekOffset)}/${member}/${di}/note`, val || null);
+}
+
+// ── View control ────────────────────────────────
+function setView(v) {
+  view = v;
+  document.getElementById('fillView').classList.toggle('hidden', v !== 'fill');
+  document.getElementById('summaryView').classList.toggle('hidden', v !== 'summary');
+  document.getElementById('tabFill').classList.toggle('active', v === 'fill');
+  document.getElementById('tabSummary').classList.toggle('active', v === 'summary');
+}
+window.setView = setView;
+
+function changeWeek(delta) {
+  weekOffset += delta;
+  localData = {};
+  subscribe();
+}
+window.changeWeek = changeWeek;
+
+function setMember(k) { activeMember = k; renderPills(); renderFill(); }
+window.setMember = setMember;
+window.toggleVal  = toggleVal;
+window.saveNote   = saveNote;
+
+// ── Render ───────────────────────────────────────
+function renderPills() {
+  document.getElementById('memberPills').innerHTML = MEMBERS.map(m => {
+    const active = m.key === activeMember;
+    const style  = active ? `border-color:${m.color}; background:${m.bg};` : '';
+    return `<button class="member-pill ${active?'active':''}" style="${style}" onclick="setMember('${m.key}')">
+      <span class="dot" style="background:${m.color}"></span>${m.name}
+    </button>`;
+  }).join('');
+}
+
+function renderFill() {
+  const dates = weekDates(weekOffset);
+  document.getElementById('fillBody').innerHTML = DAYS.map((day, di) => {
+    const L = getVal(activeMember, di, 'L');
+    const D = getVal(activeMember, di, 'D');
+    const n = getNote(activeMember, di).replace(/"/g, '&quot;');
+    const dateStr = `${dates[di].getMonth()+1}/${dates[di].getDate()}`;
+    return `<tr>
+      <td>
+        <div class="day-name">${day}</div>
+        <div class="day-date">${dateStr}</div>
+      </td>
+      <td><button class="toggle-btn ${L?'on':''}" onclick="toggleVal('${activeMember}',${di},'L')">${L?'✓':'—'}</button></td>
+      <td><button class="toggle-btn ${D?'on':''}" onclick="toggleVal('${activeMember}',${di},'D')">${D?'✓':'—'}</button></td>
+      <td><input class="note-input" placeholder="備註…" value="${n}" onchange="saveNote('${activeMember}',${di},this.value)"></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderSummary() {
+  const dates = weekDates(weekOffset);
+  const mCols = MEMBERS.map(m =>
+    `<th><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${m.color};margin-right:4px;vertical-align:middle"></span>${m.name}</th>`
+  ).join('');
+
+  let html = `<thead><tr>
+    <th class="left">日期</th>
+    <th>午餐人數</th>
+    ${mCols}
+    <th class="meal-divider"></th>
+    <th>晚餐人數</th>
+    ${mCols}
+    <th style="text-align:left;padding-left:8px">備註</th>
+  </tr></thead><tbody>`;
+
+  DAYS.forEach((day, di) => {
+    const dateStr = `${dates[di].getMonth()+1}/${dates[di].getDate()}`;
+    const lc = MEMBERS.filter(m => getVal(m.key, di, 'L')).length;
+    const dc = MEMBERS.filter(m => getVal(m.key, di, 'D')).length;
+    const lCells = MEMBERS.map(m => `<td>${getVal(m.key,di,'L') ? '<span class="sum-yes">✓</span>' : '<span class="sum-no">—</span>'}</td>`).join('');
+    const dCells = MEMBERS.map(m => `<td>${getVal(m.key,di,'D') ? '<span class="sum-yes">✓</span>' : '<span class="sum-no">—</span>'}</td>`).join('');
+    const notes  = MEMBERS.map(m => { const n=getNote(m.key,di); return n?`${m.name}：${n}`:''; }).filter(Boolean).join(' · ');
+    html += `<tr>
+      <td class="left">${day} <span style="font-size:11px;color:var(--hint)">${dateStr}</span></td>
+      <td><span class="count-pill ${lc?'has':'zero'}">${lc?lc+'人':'—'}</span></td>
+      ${lCells}
+      <td class="meal-divider"></td>
+      <td><span class="count-pill ${dc?'has':'zero'}">${dc?dc+'人':'—'}</span></td>
+      ${dCells}
+      <td class="note-td" title="${notes}">${notes}</td>
+    </tr>`;
+  });
+
+  document.getElementById('sumTable').innerHTML = html + '</tbody>';
+}
+
+function render() {
+  document.getElementById('weekLabel').textContent = fmtLabel(weekOffset);
+  renderPills();
+  renderFill();
+  renderSummary();
+}
+
+// ── Boot ─────────────────────────────────────────
+render();
+subscribe();
+</script>
+</body>
+</html>
