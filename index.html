@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,10 +16,6 @@
     --text: #1a1a18;
     --muted: #6b6a65;
     --hint: #b0aea8;
-    
-    /* 人數統計標籤改為淡紅底、紅字 */
-    --count-bg: #fdecea;
-    --count-text: #c0392b;
     
     --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04);
     
@@ -53,23 +49,20 @@
   .header-left { display: flex; align-items: center; gap: 12px; }
   .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
   
-  /* ✨ 修改：讓週導覽容器具備相對定位，方便透明日曆疊放 */
   .week-nav { display: flex; align-items: center; gap: 8px; position: relative; }
   .week-nav button { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 14px; cursor: pointer; color: var(--muted); font-family: inherit; transition: background 0.15s; z-index: 2; }
   .week-nav button:hover { background: var(--bg); }
   
-  /* ✨ 修改：包裹日期文字與隱藏日曆的容器 */
   .label-picker-wrapper { position: relative; display: inline-flex; align-items: center; justify-content: center; min-width: 100px; }
   .week-label { font-size: 14px; font-weight: 500; text-align: center; text-decoration: underline; text-underline-offset: 4px; color: var(--muted); pointer-events: none; }
   
-  /* ✨ 修改：將日曆完全透明化，並完美覆蓋在文字正上方，確保手機點擊絕對有效 */
   .invisible-picker {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
     opacity: 0;
     cursor: pointer;
     z-index: 1;
-    -webkit-appearance: none; /* 移除 iOS 預設樣式 */
+    -webkit-appearance: none;
   }
 
   .view-tabs { display: flex; gap: 4px; }
@@ -77,7 +70,7 @@
   .view-tab.active { background: var(--text); color: #fff; border-color: var(--text); }
 
   /* ── Layout ── */
-  main { padding: 20px; max-width: 860px; margin: 0 auto; }
+  main { padding: 20px; max-width: 700px; margin: 0 auto; }
 
   /* ── Member Selector ── */
   .member-section { margin-bottom: 16px; }
@@ -95,7 +88,6 @@
   .member-pill.active { border-width: 2px; font-weight: 500; }
   .member-pill:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
 
-  /* 正在編輯誰的視覺提示橫幅 */
   .edit-hint-banner {
     font-size: 14px;
     font-weight: 700;
@@ -159,53 +151,111 @@
   }
   .note-input:focus { outline: none; border-color: #aaa; }
 
-  /* ── Summary ── */
-  .summary-card {
+  /* ── ✨ Summary View 2: Timeline Style ── */
+  .timeline-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .day-card {
     background: var(--card);
     border-radius: 12px;
     border: 1px solid var(--border);
-    overflow: hidden;
     box-shadow: var(--shadow);
+    overflow: hidden;
   }
-  .summary-header {
-    padding: 14px 16px;
+  .day-card-header {
+    background: #faf9f6;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 700;
     border-bottom: 1px solid var(--border);
-    background: var(--bg);
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
-  .summary-header-title { font-size: 13px; font-weight: 500; color: var(--muted); }
-
-  .table-responsive {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+  .day-card-header span {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--hint);
   }
-
-  .sum-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px; }
-  .sum-table th {
-    padding: 9px 8px; text-align: center;
-    color: var(--muted); font-weight: 500; font-size: 12px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg);
-  }
-  .sum-table th.left { text-align: left; padding-left: 16px; }
-  .sum-table td { padding: 9px 8px; text-align: center; border-bottom: 1px solid var(--border); }
-  .sum-table tr:last-child td { border-bottom: none; }
-  .sum-table td.left { text-align: left; padding-left: 16px; font-weight: 500; }
   
-  .sum-yes { font-weight: 700; }
-  .sum-no  { color: var(--hint); }
+  .meal-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    gap: 12px;
+    border-bottom: 1px solid #f1f0ea;
+  }
+  .meal-row:last-child { border-bottom: none; }
   
-  /* 人數統計標籤樣式 */
+  /* 當該餐無人用餐時，整行優雅淡出留白 */
+  .meal-row.empty {
+    opacity: 0.45;
+    background: #fafafa;
+  }
+
+  .meal-time {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    width: 65px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* 階梯式人數標籤樣式 */
   .count-pill {
-    display: inline-block; padding: 2px 8px; border-radius: 10px;
-    font-size: 12px; font-weight: 600;
+    display: inline-block; 
+    padding: 3px 10px; 
+    border-radius: 12px;
+    font-size: 12px; 
+    font-weight: 700;
+    min-width: 42px;
+    text-align: center;
   }
-  .count-pill.has { background: var(--count-bg); color: var(--count-text); }
-  .count-pill.zero { background: var(--bg); color: var(--hint); }
+  .count-pill.p0 { background: #eef0f2; color: #8a8d90; font-weight: 400; }
+  .count-pill.p1 { background: #e6f7ed; color: #1a7a45; }
+  .count-pill.p2 { background: #fff3e6; color: #d97706; }
+  .count-pill.p3plus { background: #fdecea; color: #c0392b; }
+
+  .meal-members {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    flex-grow: 1;
+  }
+  .meal-row.empty .meal-members {
+    font-weight: 400;
+    color: var(--hint);
+    font-style: italic;
+  }
   
-  .meal-divider { border-right: 2px solid var(--border); }
-  .note-td { font-size: 11px; color: var(--muted); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: 8px; }
+  /* 成員名字小彩點提示 */
+  .member-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-right: 8px;
+  }
+  .member-tag-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .meal-note {
+    font-size: 12px;
+    color: #7f5539;
+    background: #fff8f0;
+    border: 1px dashed #eddcd2;
+    padding: 3px 8px;
+    border-radius: 6px;
+    max-width: 220px;
+    word-break: break-all;
+  }
 
   /* ── Status bar ── */
   .status-bar {
@@ -233,6 +283,11 @@
     .note-input { max-width: 75px; font-size: 11px; padding: 4px; }
     .member-pill { padding: 5px 10px; font-size: 13px; }
     .edit-hint-banner { font-size: 13px; }
+    
+    /* 手機版適度縮小與微調 */
+    .meal-row { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+    .meal-members { width: 100%; order: 3; padding-left: 0; }
+    .meal-note { width: 100%; order: 4; max-width: 100%; margin-top: 2px; }
   }
 
   .hidden { display: none !important; }
@@ -242,15 +297,13 @@
 
 <header>
   <div class="header-left">
-    <div class="logo">🍱The Kuo-sine Reservation Desk 郭家私廚</div>
+    <div class="logo">🍱The Kuo-sine Reservation Desk</div>
     <div class="week-nav">
       <button onclick="changeWeek(-1)">‹</button>
-      
       <div class="label-picker-wrapper">
         <span class="week-label" id="weekLabel"></span>
         <input type="date" id="datePicker" class="invisible-picker" onchange="jumpToDate(this.value)">
       </div>
-      
       <button onclick="changeWeek(1)">›</button>
     </div>
   </div>
@@ -261,6 +314,7 @@
 </header>
 
 <main>
+  <!-- Fill in View -->
   <div id="fillView">
     <div class="member-section">
       <div class="section-label">Who r u?</div>
@@ -284,26 +338,20 @@
     </div>
   </div>
 
+  <!-- ✨ Summary View (Timeline style) -->
   <div id="summaryView" class="hidden">
-    <div class="summary-card">
-      <div class="summary-header">
-        <span class="summary-header-title">Summary — To Mom &amp; Ipah</span>
-      </div>
-      <div class="table-responsive">
-        <table class="sum-table" id="sumTable"></table>
-      </div>
-    </div>
+    <div class="timeline-container" id="timelineContainer"></div>
   </div>
 </main>
 
 <div class="status-bar">
   <div class="status-dot" id="statusDot"></div>
-  <span id="statusText">連線中…</span>
+  <span id="statusText">Connecting…</span>
 </div>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getDatabase, ref, onValue, set, get } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCeszklpOunCReunK5jjTsztAU7iEgWCoQ",
@@ -318,8 +366,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
-// ══════════════════════════════════════════════════
-/* 四名成員的質感色系與極淡背景設定 */
 const MEMBERS = [
   { key: 'A', name: 'Sam',   color: '#111111', bg: '#f1f1f1', themeBg: '#fafafa', themeBorder: '#e0e0e0' }, 
   { key: 'B', name: 'Joyce',   color: '#0080FF', bg: '#e2ebf5', themeBg: '#f4f7fa', themeBorder: '#cfdae6' }, 
@@ -333,7 +379,6 @@ let activeMember = 'A';
 let localData = {};
 let view = 'fill';
 
-// ── Utilities ──────────────────────────────────
 function getMonday(offset) {
   const d = new Date();
   const day = d.getDay() || 7;
@@ -341,14 +386,10 @@ function getMonday(offset) {
   d.setHours(0,0,0,0);
   return d;
 }
-function weekKey(offset) {
-  return getMonday(offset).toISOString().slice(0,10);
-}
+function weekKey(offset) { return getMonday(offset).toISOString().slice(0,10); }
 function weekDates(offset) {
   const mon = getMonday(offset);
-  return DAYS.map((_,i) => {
-    const d = new Date(mon); d.setDate(mon.getDate()+i); return d;
-  });
+  return DAYS.map((_,i) => { const d = new Date(mon); d.setDate(mon.getDate()+i); return d; });
 }
 function fmtLabel(offset) {
   const ds = weekDates(offset);
@@ -357,18 +398,16 @@ function fmtLabel(offset) {
 }
 function dbPath(offset) { return `meals/${weekKey(offset)}`; }
 
-// ── Firebase sync ───────────────────────────────
 let unsubscribe = null;
-
 function subscribe() {
   if (unsubscribe) unsubscribe();
-  setStatus('syncing', '同步中…');
+  setStatus('syncing', 'Syncing…');
   const r = ref(db, dbPath(weekOffset));
   unsubscribe = onValue(r, snap => {
     localData = snap.val() || {};
-    setStatus('synced', '已同步');
+    setStatus('synced', 'Synced');
     render();
-  }, () => setStatus('error', '離線 — 資料暫存本機'));
+  }, () => setStatus('error', 'Offline'));
 }
 
 function writeVal(path, value) {
@@ -385,13 +424,9 @@ function setStatus(state, msg) {
   text.textContent = msg;
 }
 
-// ── Data helpers ────────────────────────────────
-function getVal(member, di, meal) {
-  return !!(localData[member]?.[di]?.[meal]);
-}
-function getNote(member, di) {
-  return localData[member]?.[di]?.note || '';
-}
+function getVal(member, di, meal) { return !!(localData[member]?.[di]?.[meal]); }
+function getNote(member, di) { return localData[member]?.[di]?.note || ''; }
+
 function toggleVal(member, di, meal) {
   const newVal = !getVal(member, di, meal);
   if (!localData[member])       localData[member] = {};
@@ -408,7 +443,6 @@ function saveNote(member, di, val) {
   writeVal(`${dbPath(weekOffset)}/${member}/${di}/note`, val || null);
 }
 
-// ── View control ────────────────────────────────
 function setView(v) {
   view = v;
   document.getElementById('fillView').classList.toggle('hidden', v !== 'fill');
@@ -425,30 +459,21 @@ function changeWeek(delta) {
 }
 window.changeWeek = changeWeek;
 
-/* 新增：由日曆選定特定日期後，自動推算週別跳轉 */
 function jumpToDate(dateVal) {
   if (!dateVal) return;
   const targetDate = new Date(dateVal);
-  
-  // 計算目標日期的「該週週一」
   const targetMonday = new Date(targetDate);
   const day = targetDate.getDay() || 7;
   targetMonday.setDate(targetDate.getDate() - day + 1);
   targetMonday.setHours(0,0,0,0);
   
-  // 計算「今天這週的週一」
   const todayMonday = getMonday(0);
-  
-  // 計算兩者的週數差
   const msDiff = targetMonday.getTime() - todayMonday.getTime();
   const weeksDiff = Math.round(msDiff / (1000 * 60 * 60 * 24 * 7));
   
   weekOffset = weeksDiff;
   localData = {};
-  
-  // 重設 input 的數值，讓下一次選同一天也能正常觸發 onchange
   document.getElementById('datePicker').value = '';
-  
   subscribe();
 }
 window.jumpToDate = jumpToDate;
@@ -474,12 +499,10 @@ function updateThemeStyles() {
     const banner = document.getElementById('editHintBanner');
     banner.style.backgroundColor = currentMember.bg;
     banner.style.color = currentMember.color;
-    // ✍️ 誰's editing (名字加底線)
     banner.innerHTML = `✍️ <span style="text-decoration: underline; margin: 0 2px;">${currentMember.name}</span>'s editing`;
   }
 }
 
-// ── Render ───────────────────────────────────────
 function renderPills() {
   document.getElementById('memberPills').innerHTML = MEMBERS.map(m => {
     const active = m.key === activeMember;
@@ -509,47 +532,66 @@ function renderFill() {
   }).join('');
 }
 
+// ✨ 改寫：渲染全新的時間軸 Summary 視覺畫面
 function renderSummary() {
   const dates = weekDates(weekOffset);
-  const mCols = MEMBERS.map(m =>
-    `<th><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${m.color};margin-right:4px;vertical-align:middle"></span>${m.name}</th>`
-  ).join('');
-
-  let html = `<thead><tr>
-    <th class="left">Date</th>
-    <th>Lunch #</th>
-    ${mCols}
-    <th class="meal-divider"></th>
-    <th>Dinner #</th>
-    ${mCols}
-    <th style="text-align:left;padding-left:8px">備註</th>
-  </tr></thead><tbody>`;
+  let html = '';
 
   DAYS.forEach((day, di) => {
     const dateStr = `${dates[di].getMonth()+1}/${dates[di].getDate()}`;
-    const lc = MEMBERS.filter(m => getVal(m.key, di, 'L')).length;
-    const dc = MEMBERS.filter(m => getVal(m.key, di, 'D')).length;
     
-    /* 人數統計格式轉換為 1p, 2ps, 3ps, 4ps 等英文寫法 */
-    const lCountStr = lc === 0 ? '—' : (lc === 1 ? '1p' : `${lc}ps`);
-    const dCountStr = dc === 0 ? '—' : (dc === 1 ? '1p' : `${dc}ps`);
+    // 撈取中午與晚上用餐名單
+    const lunchAttendees = MEMBERS.filter(m => getVal(m.key, di, 'L'));
+    const dinnerAttendees = MEMBERS.filter(m => getVal(m.key, di, 'D'));
+    
+    // 撈取當天所有人的備註整合
+    const dayNotes = MEMBERS.map(m => {
+      const n = getNote(m.key, di);
+      return n ? `${m.name}: ${n}` : '';
+    }).filter(Boolean).join(' | ');
 
-    const lCells = MEMBERS.map(m => `<td>${getVal(m.key,di,'L') ? `<span class="sum-yes" style="color:${m.color}">✓</span>` : '<span class="sum-no">—</span>'}</td>`).join('');
-    const dCells = MEMBERS.map(m => `<td>${getVal(m.key,di,'D') ? `<span class="sum-yes" style="color:${m.color}">✓</span>` : '<span class="sum-no">—</span>'}</td>`).join('');
-    
-    const notes  = MEMBERS.map(m => { const n=getNote(m.key,di); return n?`${m.name}：${n}`:''; }).filter(Boolean).join(' · ');
-    html += `<tr>
-      <td class="left">${day} <span style="font-size:11px;color:var(--hint)">${dateStr}</span></td>
-      <td><span class="count-pill ${lc?'has':'zero'}">${lCountStr}</span></td>
-      ${lCells}
-      <td class="meal-divider"></td>
-      <td><span class="count-pill ${dc?'has':'zero'}">${dCountStr}</span></td>
-      ${dCells}
-      <td class="note-td" title="${notes}">${notes}</td>
-    </tr>`;
+    // 依據人數產生對應的配色 Class
+    const getPillClass = (count) => {
+      if (count === 0) return 'p0';
+      if (count === 1) return 'p1';
+      if (count === 2) return 'p2';
+      return 'p3plus';
+    };
+
+    const lCountStr = lunchAttendees.length === 0 ? '—' : (lunchAttendees.length === 1 ? '1p' : `${lunchAttendees.length}ps`);
+    const dCountStr = dinnerAttendees.length === 0 ? '—' : (dinnerAttendees.length === 1 ? '1p' : `${dinnerAttendees.length}ps`);
+
+    // 格式化名字呈現（加上各自專屬的顏色小點點）
+    const formatNames = (attendees) => {
+      if (attendees.length === 0) return 'No one';
+      return attendees.map(m => `<span class="member-tag"><span class="member-tag-dot" style="background:${m.color}"></span>${m.name}</span>`).join('');
+    };
+
+    html += `
+      <div class="day-card">
+        <div class="day-card-header">
+          ${day} <span>${dateStr}</span>
+        </div>
+        
+        <!-- Lunch 行 -->
+        <div class="meal-row ${lunchAttendees.length === 0 ? 'empty' : ''}">
+          <div class="meal-time">☀️ Lunch</div>
+          <div><span class="count-pill ${getPillClass(lunchAttendees.length)}">${lCountStr}</span></div>
+          <div class="meal-members">${formatNames(lunchAttendees)}</div>
+        </div>
+        
+        <!-- Dinner 行 -->
+        <div class="meal-row ${dinnerAttendees.length === 0 ? 'empty' : ''}">
+          <div class="meal-time">🌙 Dinner</div>
+          <div><span class="count-pill ${getPillClass(dinnerAttendees.length)}">${dCountStr}</span></div>
+          <div class="meal-members">${formatNames(dinnerAttendees)}</div>
+          ${dayNotes ? `<div class="meal-note" title="${dayNotes}">💬 ${dayNotes}</div>` : ''}
+        </div>
+      </div>
+    `;
   });
 
-  document.getElementById('sumTable').innerHTML = html + '</tbody>';
+  document.getElementById('timelineContainer').innerHTML = html;
 }
 
 function render() {
@@ -560,7 +602,6 @@ function render() {
   renderSummary();
 }
 
-// ── Boot ─────────────────────────────────────────
 render();
 subscribe();
 </script>
