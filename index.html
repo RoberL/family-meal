@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>家庭用餐計畫表</title>
+<title>Family Meal</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
 
@@ -191,7 +191,7 @@
 
 <header>
   <div class="header-left">
-    <div class="logo">🍱 家庭飯桌</div>
+    <div class="logo">🍱The Kuo-sine Reservation Desk 郭家私廚</div>
     <div class="week-nav">
       <button onclick="changeWeek(-1)">‹</button>
       <span class="week-label" id="weekLabel"></span>
@@ -218,7 +218,7 @@
             <th>日期</th>
             <th>午餐</th>
             <th>晚餐</th>
-            <th style="text-align:left">備註</th>
+            <th style="text-align:left">Note</th>
           </tr>
         </thead>
         <tbody id="fillBody"></tbody>
@@ -230,7 +230,7 @@
   <div id="summaryView" class="hidden">
     <div class="summary-card">
       <div class="summary-header">
-        <span class="summary-header-title">本週用餐彙總 — 給媽媽 &amp; 印傭</span>
+        <span class="summary-header-title">Summary — To Mom &amp; Ipah</span>
       </div>
       <table class="sum-table" id="sumTable"></table>
     </div>
@@ -266,12 +266,12 @@ const db  = getDatabase(app);
 
 // ══════════════════════════════════════════════════
 const MEMBERS = [
-  { key: 'A', name: '大哥',   color: '#185FA5', bg: '#ddeaf7' },
-  { key: 'B', name: '二姊',   color: '#0F6E56', bg: '#d6f0e7' },
-  { key: 'C', name: '小妹',   color: '#993C1D', bg: '#fbe5dc' },
+  { key: 'A', name: 'Sam',   color: '#185FA5', bg: '#ddeaf7' },
+  { key: 'B', name: 'Joyce',   color: '#0F6E56', bg: '#d6f0e7' },
+  { key: 'C', name: 'Anisa',   color: '#993C1D', bg: '#fbe5dc' },
   { key: 'D', name: 'Tom',    color: '#6C4DB8', bg: '#ece8f8' },
 ];
-const DAYS = ['週一','週二','週三','週四','週五','週六','週日'];
+const DAYS = ['Mon.','Tue.','Wed.','Thu.','Fri.','Sat.','Sun.'];
 
 let weekOffset = 0;
 let activeMember = 'A';
@@ -317,10 +317,10 @@ function subscribe() {
 }
 
 function writeVal(path, value) {
-  setStatus('syncing', '儲存中…');
+  setStatus('syncing', 'Saving…');
   set(ref(db, path), value)
-    .then(()  => setStatus('synced', '已儲存'))
-    .catch(()  => setStatus('error', '儲存失敗'));
+    .then(()  => setStatus('synced', 'Saved'))
+    .catch(()  => setStatus('error', 'Save failed'));
 }
 
 function setStatus(state, msg) {
@@ -400,7 +400,7 @@ function renderFill() {
       </td>
       <td><button class="toggle-btn ${L?'on':''}" onclick="toggleVal('${activeMember}',${di},'L')">${L?'✓':'—'}</button></td>
       <td><button class="toggle-btn ${D?'on':''}" onclick="toggleVal('${activeMember}',${di},'D')">${D?'✓':'—'}</button></td>
-      <td><input class="note-input" placeholder="備註…" value="${n}" onchange="saveNote('${activeMember}',${di},this.value)"></td>
+      <td><input class="note-input" placeholder="Note…" value="${n}" onchange="saveNote('${activeMember}',${di},this.value)"></td>
     </tr>`;
   }).join('');
 }
@@ -412,11 +412,11 @@ function renderSummary() {
   ).join('');
 
   let html = `<thead><tr>
-    <th class="left">日期</th>
-    <th>午餐人數</th>
+    <th class="left">Date</th>
+    <th>Lunch #</th>
     ${mCols}
     <th class="meal-divider"></th>
-    <th>晚餐人數</th>
+    <th>Dinner #</th>
     ${mCols}
     <th style="text-align:left;padding-left:8px">備註</th>
   </tr></thead><tbody>`;
