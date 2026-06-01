@@ -21,6 +21,10 @@
     --red-bg: #fdecea;
     --red: #c0392b;
     --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04);
+    
+    /* 預設的填寫區主題色（未選取或預設狀態） */
+    --current-theme-bg: #ffffff;
+    --current-theme-border: #e5e3dc;
   }
 
   body {
@@ -59,7 +63,7 @@
   main { padding: 20px; max-width: 860px; margin: 0 auto; }
 
   /* ── Member Selector ── */
-  .member-section { margin-bottom: 20px; }
+  .member-section { margin-bottom: 16px; }
   .section-label { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 10px; }
   .member-pills { display: flex; gap: 8px; flex-wrap: wrap; }
   .member-pill {
@@ -74,25 +78,41 @@
   .member-pill.active { border-width: 2px; font-weight: 500; }
   .member-pill:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
 
+  /* ✨ 方案三新增：正在編輯誰的視覺提示標籤 */
+  .edit-hint-banner {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.25s ease;
+  }
+
   /* ── Fill Table ── */
+  /* ✨ 背景套用動態切換的低飽和度主題色 */
   .fill-card {
-    background: var(--card);
+    background: var(--current-theme-bg);
     border-radius: 12px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--current-theme-border);
     overflow: hidden;
     box-shadow: var(--shadow);
+    transition: background 0.25s ease, border-color 0.25s ease;
   }
   .fill-table { width: 100%; border-collapse: collapse; }
   .fill-table thead th {
     padding: 10px 12px; font-size: 12px; font-weight: 500;
     color: var(--muted); text-align: center;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg);
+    border-bottom: 1px solid var(--current-theme-border);
+    background: rgba(0, 0, 0, 0.02);
     letter-spacing: 0.03em;
+    transition: border-color 0.25s ease;
   }
   .fill-table thead th:first-child { text-align: left; }
-  .fill-table tbody tr:not(:last-child) { border-bottom: 1px solid var(--border); }
-  .fill-table tbody tr:hover { background: #fafaf8; }
+  .fill-table tbody tr:not(:last-child) { border-bottom: 1px solid var(--current-theme-border); transition: border-color 0.25s ease; }
+  .fill-table tbody tr:hover { background: rgba(0, 0, 0, 0.01); }
   .fill-table td { padding: 10px 12px; vertical-align: middle; text-align: center; }
   .fill-table td:first-child { text-align: left; }
   .day-name { font-weight: 500; font-size: 14px; }
@@ -102,7 +122,7 @@
     display: inline-flex; align-items: center; justify-content: center;
     width: 42px; height: 32px; border-radius: 8px;
     border: 1.5px solid var(--border);
-    background: var(--bg);
+    background: var(--card);
     font-size: 13px; cursor: pointer; font-family: inherit;
     transition: all 0.15s; color: var(--hint);
     font-weight: 400;
@@ -118,7 +138,7 @@
   .note-input {
     border: 1px solid var(--border); border-radius: 6px;
     padding: 5px 8px; font-size: 12px; font-family: inherit;
-    background: var(--bg); color: var(--text); width: 100%; max-width: 130px;
+    background: var(--card); color: var(--text); width: 100%; max-width: 130px;
   }
   .note-input:focus { outline: none; border-color: #aaa; }
 
@@ -138,14 +158,14 @@
   }
   .summary-header-title { font-size: 13px; font-weight: 500; color: var(--muted); }
 
-  /* ✨ RWD 關鍵優化：允許表格在小螢幕時在卡片內水平滾動，防止網頁爆開 */
+  /* RWD 彙整表防爆滾動容器 */
   .table-responsive {
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  .sum-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px; } /* 設定防擠壓最小寬度 */
+  .sum-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px; }
   .sum-table th {
     padding: 9px 8px; text-align: center;
     color: var(--muted); font-weight: 500; font-size: 12px;
@@ -192,6 +212,7 @@
     .toggle-btn { width: 36px; height: 30px; }
     .note-input { max-width: 75px; font-size: 11px; padding: 4px; }
     .member-pill { padding: 5px 10px; font-size: 13px; }
+    .edit-hint-banner { font-size: 13px; }
   }
 
   .hidden { display: none !important; }
@@ -220,7 +241,10 @@
       <div class="section-label">Who r u?</div>
       <div class="member-pills" id="memberPills"></div>
     </div>
-    <div class="fill-card">
+    
+    <div class="edit-hint-banner" id="editHintBanner"></div>
+
+    <div class="fill-card" id="fillCard">
       <table class="fill-table">
         <thead>
           <tr>
@@ -270,11 +294,12 @@ const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
 // ══════════════════════════════════════════════════
+/* ✨ 方案三優化：獨立定義每個人的「超淡粉嫩背景色」與「微淡邊框色」，與按鈕的高飽和度拉開區隔 */
 const MEMBERS = [
-  { key: 'A', name: 'Sam',   color: '#000000', bg: '#ddeaf7' },
-  { key: 'B', name: 'Joyce',   color: '#0080FF', bg: '#d6f0e7' },
-  { key: 'C', name: 'Anisa',   color: '#00DB00', bg: '#fbe5dc' },
-  { key: 'D', name: 'Tom',    color: '#FF359A', bg: '#ece8f8' },
+  { key: 'A', name: 'Sam',   color: '#000000', bg: '#ddeaf7', themeBg: '#f2f6fa', themeBorder: '#d0dae5' },
+  { key: 'B', name: 'Joyce',   color: '#0080FF', bg: '#d6f0e7', themeBg: '#f0f9f6', themeBorder: '#cfe5de' },
+  { key: 'C', name: 'Anisa',   color: '#00DB00', bg: '#fbe5dc', themeBg: '#fdf5f2', themeBorder: '#f0ded7' },
+  { key: 'D', name: 'Tom',    color: '#FF359A', bg: '#ece8f8', themeBg: '#f6f4fa', themeBorder: '#e2dde8' },
 ];
 const DAYS = ['Mon.','Tue.','Wed.','Thu.','Fri.','Sat.','Sun.'];
 
@@ -375,10 +400,33 @@ function changeWeek(delta) {
 }
 window.changeWeek = changeWeek;
 
-function setMember(k) { activeMember = k; renderPills(); renderFill(); }
+/* ✨ 方案三優化：當使用者切換成員時，動態更新 CSS 全局變數與提示 Banner */
+function setMember(k) { 
+  activeMember = k; 
+  updateThemeStyles();
+  renderPills(); 
+  renderFill(); 
+}
 window.setMember = setMember;
 window.toggleVal  = toggleVal;
 window.saveNote   = saveNote;
+
+/* ✨ 方案三新增：更換填寫卡片主題色與提示橫幅的函式 */
+function updateThemeStyles() {
+  const currentMember = MEMBERS.find(m => m.key === activeMember);
+  if (currentMember) {
+    // 動態更新 CSS 變數（控制填寫卡片的背景與邊框）
+    const root = document.documentElement;
+    root.style.setProperty('--current-theme-bg', currentMember.themeBg);
+    root.style.setProperty('--current-theme-border', currentMember.themeBorder);
+
+    // 更新上方的醒目文字提示
+    const banner = document.getElementById('editHintBanner');
+    banner.style.backgroundColor = currentMember.bg;
+    banner.style.color = currentMember.color === '#000000' ? '#333333' : currentMember.color;
+    banner.innerHTML = `✍️ 正在修改 <span style="text-decoration: underline; margin: 0 2px;">${currentMember.name}</span> 的用餐計畫`;
+  }
+}
 
 // ── Render ───────────────────────────────────────
 function renderPills() {
@@ -435,10 +483,10 @@ function renderSummary() {
     const notes  = MEMBERS.map(m => { const n=getNote(m.key,di); return n?`${m.name}：${n}`:''; }).filter(Boolean).join(' · ');
     html += `<tr>
       <td class="left">${day} <span style="font-size:11px;color:var(--hint)">${dateStr}</span></td>
-      <td><span class="count-pill ${lc?'has':'zero'}">${lc ? lc + (lc === 1 ? 'p' : 'ps') : '—'}</span></td>
+      <td><span class="count-pill ${lc?'has':'zero'}">${lc ? lc + '人' : '—'}</span></td>
       ${lCells}
       <td class="meal-divider"></td>
-      <td><span class="count-pill ${dc?'has':'zero'}">${dc ? dc + (dc === 1 ? 'p' : 'ps') : '—'}</span></td>
+      <td><span class="count-pill ${dc?'has':'zero'}">${dc ? dc + '人' : '—'}</span></td>
       ${dCells}
       <td class="note-td" title="${notes}">${notes}</td>
     </tr>`;
@@ -449,6 +497,7 @@ function renderSummary() {
 
 function render() {
   document.getElementById('weekLabel').textContent = fmtLabel(weekOffset);
+  updateThemeStyles(); // 確保重新整理時顏色同步
   renderPills();
   renderFill();
   renderSummary();
