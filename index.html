@@ -138,7 +138,14 @@
   }
   .summary-header-title { font-size: 13px; font-weight: 500; color: var(--muted); }
 
-  .sum-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  /* ✨ RWD 關鍵優化：允許表格在小螢幕時在卡片內水平滾動，防止網頁爆開 */
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sum-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px; } /* 設定防擠壓最小寬度 */
   .sum-table th {
     padding: 9px 8px; text-align: center;
     color: var(--muted); font-weight: 500; font-size: 12px;
@@ -158,7 +165,7 @@
   .count-pill.has { background: var(--green-bg); color: var(--green); }
   .count-pill.zero { background: var(--bg); color: var(--hint); }
   .meal-divider { border-right: 2px solid var(--border); }
-  .note-td { font-size: 11px; color: var(--muted); max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: 8px; }
+  .note-td { font-size: 11px; color: var(--muted); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: 8px; }
 
   /* ── Status bar ── */
   .status-bar {
@@ -168,6 +175,7 @@
     border-top: 1px solid var(--border);
     font-size: 12px; color: var(--muted);
     display: flex; align-items: center; gap: 8px;
+    z-index: 99;
   }
   .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--hint); flex-shrink: 0; }
   .status-dot.synced { background: var(--green); }
@@ -177,11 +185,13 @@
 
   /* ── Responsive ── */
   @media (max-width: 600px) {
-    header { flex-wrap: wrap; }
-    main { padding: 14px; }
-    .fill-table thead th, .fill-table td { padding: 8px 6px; }
-    .sum-table th, .sum-table td { padding: 7px 4px; font-size: 11px; }
-    .note-input { max-width: 80px; }
+    header { flex-wrap: wrap; padding: 12px; }
+    .logo { font-size: 16px; }
+    main { padding: 10px; margin-bottom: 40px; }
+    .fill-table thead th, .fill-table td { padding: 8px 4px; font-size: 13px; }
+    .toggle-btn { width: 36px; height: 30px; }
+    .note-input { max-width: 75px; font-size: 11px; padding: 4px; }
+    .member-pill { padding: 5px 10px; font-size: 13px; }
   }
 
   .hidden { display: none !important; }
@@ -230,7 +240,9 @@
       <div class="summary-header">
         <span class="summary-header-title">Summary — To Mom &amp; Ipah</span>
       </div>
-      <table class="sum-table" id="sumTable"></table>
+      <div class="table-responsive">
+        <table class="sum-table" id="sumTable"></table>
+      </div>
     </div>
   </div>
 </main>
@@ -244,7 +256,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getDatabase, ref, onValue, set, get } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
-// ▼▼▼ 把這整段換成你從 Firebase Console 拿到的 config ▼▼▼
 const firebaseConfig = {
   apiKey: "AIzaSyCeszklpOunCReunK5jjTsztAU7iEgWCoQ",
   authDomain: "family-meal-89d1e.firebaseapp.com",
@@ -254,7 +265,6 @@ const firebaseConfig = {
   messagingSenderId: "721568861768",
   appId: "1:721568861768:web:f39551b117c4318a6ed27d"
 };
-// ▲▲▲ 換到這裡為止 ▲▲▲
 
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
