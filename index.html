@@ -16,12 +16,17 @@
     --text: #1a1a18;
     --muted: #6b6a65;
     --hint: #b0aea8;
+    
+    /* ✨ 修改：人數統計標籤改為淡紅底、紅字 */
+    --count-bg: #fdecea;
+    --count-text: #c0392b;
+    
     --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04);
     
     /* 動態變數 */
     --current-theme-bg: #ffffff;
     --current-theme-border: #e5e3dc;
-    --current-member-color: #1a7a45; /* 預設打勾顏色 */
+    --current-member-color: #111111;
   }
 
   body {
@@ -75,7 +80,7 @@
   .member-pill.active { border-width: 2px; font-weight: 500; }
   .member-pill:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
 
-  /* 正在編輯誰的視覺提示標籤 */
+  /* 正在編輯誰的視覺提示橫幅 */
   .edit-hint-banner {
     font-size: 14px;
     font-weight: 700;
@@ -123,7 +128,6 @@
     transition: all 0.15s; color: var(--hint);
     font-weight: 400;
   }
-  /* ✨ 修改：打勾按鈕啟動時，直接變色為目前選定使用者的專屬人名色 */
   .toggle-btn.on {
     background: #ffffff;
     border-color: var(--current-member-color);
@@ -174,16 +178,17 @@
   .sum-table tr:last-child td { border-bottom: none; }
   .sum-table td.left { text-align: left; padding-left: 16px; font-weight: 500; }
   
-  /* 彙整頁打勾樣式 */
   .sum-yes { font-weight: 700; }
   .sum-no  { color: var(--hint); }
   
+  /* ✨ 修改：調整人數標籤樣式為淡紅底、紅字 */
   .count-pill {
     display: inline-block; padding: 2px 8px; border-radius: 10px;
     font-size: 12px; font-weight: 600;
   }
-  .count-pill.has { background: #e8f5ee; color: #1a7a45; }
+  .count-pill.has { background: var(--count-bg); color: var(--count-text); }
   .count-pill.zero { background: var(--bg); color: var(--hint); }
+  
   .meal-divider { border-right: 2px solid var(--border); }
   .note-td { font-size: 11px; color: var(--muted); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: 8px; }
 
@@ -236,14 +241,12 @@
 </header>
 
 <main>
-  <!-- Fill View -->
   <div id="fillView">
     <div class="member-section">
       <div class="section-label">Who r u?</div>
       <div class="member-pills" id="memberPills"></div>
     </div>
     
-    <!-- 動態提示文字區 -->
     <div class="edit-hint-banner" id="editHintBanner"></div>
 
     <div class="fill-card" id="fillCard">
@@ -261,7 +264,6 @@
     </div>
   </div>
 
-  <!-- Summary View -->
   <div id="summaryView" class="hidden">
     <div class="summary-card">
       <div class="summary-header">
@@ -297,12 +299,12 @@ const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
 // ══════════════════════════════════════════════════
-/* ✨ 修改：更新為您指定的高質感色系（黑、海軍藍、墨綠、粉紅）與低飽和極淺底色 */
+/* 四名成員的質感色系與極淡背景設定 */
 const MEMBERS = [
-  { key: 'A', name: 'Sam',   color: '#111111', bg: '#f1f1f1', themeBg: '#fafafa', themeBorder: '#e0e0e0' }, // 經典黑 + 極簡灰底
-  { key: 'B', name: 'Joyce',   color: '#0080FF', bg: '#e2ebf5', themeBg: '#f4f7fa', themeBorder: '#cfdae6' }, // 海軍藍 + 舒適藍灰底
-  { key: 'C', name: 'Anisa',   color: '#00BB00', bg: '#e2ece6', themeBg: '#f3f7f5', themeBorder: '#ccdcd2' }, // 墨綠色 + 清新綠灰底
-  { key: 'D', name: 'Tom',    color: '#d53f8c', bg: '#fbe7f0', themeBg: '#fdf6fa', themeBorder: '#f3d5e4' }, // 質感粉紅 + 柔和極淡粉底
+  { key: 'A', name: 'Sam',   color: '#111111', bg: '#f1f1f1', themeBg: '#fafafa', themeBorder: '#e0e0e0' }, 
+  { key: 'B', name: 'Joyce',   color: '#1a365d', bg: '#e2ebf5', themeBg: '#f4f7fa', themeBorder: '#cfdae6' }, 
+  { key: 'C', name: 'Anisa',   color: '#1c3d27', bg: '#e2ece6', themeBg: '#f3f7f5', themeBorder: '#ccdcd2' }, 
+  { key: 'D', name: 'Tom',    color: '#d53f8c', bg: '#fbe7f0', themeBg: '#fdf6fa', themeBorder: '#f3d5e4' }, 
 ];
 const DAYS = ['Mon.','Tue.','Wed.','Thu.','Fri.','Sat.','Sun.'];
 
@@ -413,19 +415,19 @@ window.setMember = setMember;
 window.toggleVal  = toggleVal;
 window.saveNote   = saveNote;
 
-/* ✨ 修改：切換成員時，同步將人名色傳遞給 CSS 變數，控制打勾 (✓) 的顏色 */
 function updateThemeStyles() {
   const currentMember = MEMBERS.find(m => m.key === activeMember);
   if (currentMember) {
     const root = document.documentElement;
     root.style.setProperty('--current-theme-bg', currentMember.themeBg);
     root.style.setProperty('--current-theme-border', currentMember.themeBorder);
-    root.style.setProperty('--current-member-color', currentMember.color); // 控制打勾的顏色
+    root.style.setProperty('--current-member-color', currentMember.color); 
 
     const banner = document.getElementById('editHintBanner');
     banner.style.backgroundColor = currentMember.bg;
     banner.style.color = currentMember.color;
-    banner.innerHTML = `✍️ <span style="text-decoration: underline; margin: 0 2px;">${currentMember.name}</span>'s editing...`;
+    // ✍️ 誰's editing (名字加底線)
+    banner.innerHTML = `✍️ <span style="text-decoration: underline; margin: 0 2px;">${currentMember.name}</span>'s editing`;
   }
 }
 
@@ -480,17 +482,20 @@ function renderSummary() {
     const lc = MEMBERS.filter(m => getVal(m.key, di, 'L')).length;
     const dc = MEMBERS.filter(m => getVal(m.key, di, 'D')).length;
     
-    /* ✨ 修改：彙整總表（Summary）的打勾勾 (✓) 也與該人名專屬色同步 */
+    /* ✨ 修改：將人數統計格式轉換為 1p, 2ps, 3ps, 4ps 等英文寫法 */
+    const lCountStr = lc === 0 ? '—' : (lc === 1 ? '1p' : `${lc}ps`);
+    const dCountStr = dc === 0 ? '—' : (dc === 1 ? '1p' : `${dc}ps`);
+
     const lCells = MEMBERS.map(m => `<td>${getVal(m.key,di,'L') ? `<span class="sum-yes" style="color:${m.color}">✓</span>` : '<span class="sum-no">—</span>'}</td>`).join('');
     const dCells = MEMBERS.map(m => `<td>${getVal(m.key,di,'D') ? `<span class="sum-yes" style="color:${m.color}">✓</span>` : '<span class="sum-no">—</span>'}</td>`).join('');
     
     const notes  = MEMBERS.map(m => { const n=getNote(m.key,di); return n?`${m.name}：${n}`:''; }).filter(Boolean).join(' · ');
     html += `<tr>
       <td class="left">${day} <span style="font-size:11px;color:var(--hint)">${dateStr}</span></td>
-      <td><span class="count-pill ${lc?'has':'zero'}">${lc ? lc + '人' : '—'}</span></td>
+      <td><span class="count-pill ${lc?'has':'zero'}">${lCountStr}</span></td>
       ${lCells}
       <td class="meal-divider"></td>
-      <td><span class="count-pill ${dc?'has':'zero'}">${dc ? dc + '人' : '—'}</span></td>
+      <td><span class="count-pill ${dc?'has':'zero'}">${dCountStr}</span></td>
       ${dCells}
       <td class="note-td" title="${notes}">${notes}</td>
     </tr>`;
