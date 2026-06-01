@@ -205,7 +205,6 @@
 </header>
 
 <main>
-  <!-- Fill View -->
   <div id="fillView">
     <div class="member-section">
       <div class="section-label">Who r u?</div>
@@ -226,7 +225,6 @@
     </div>
   </div>
 
-  <!-- Summary View -->
   <div id="summaryView" class="hidden">
     <div class="summary-card">
       <div class="summary-header">
@@ -242,9 +240,6 @@
   <span id="statusText">連線中…</span>
 </div>
 
-<!-- ═══════════════════════════════════════════════════
-     🔥 STEP 1: 把你的 Firebase config 貼在這裡
-     ═══════════════════════════════════════════════════ -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getDatabase, ref, onValue, set, get } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
@@ -430,10 +425,10 @@ function renderSummary() {
     const notes  = MEMBERS.map(m => { const n=getNote(m.key,di); return n?`${m.name}：${n}`:''; }).filter(Boolean).join(' · ');
     html += `<tr>
       <td class="left">${day} <span style="font-size:11px;color:var(--hint)">${dateStr}</span></td>
-      <td><span class="count-pill ${lc?'has':'zero'}">${lc?lc+'人':'—'}</span></td>
+      <td><span class="count-pill ${lc?'has':'zero'}">${lc ? lc + (lc === 1 ? 'p' : 'ps') : '—'}</span></td>
       ${lCells}
       <td class="meal-divider"></td>
-      <td><span class="count-pill ${dc?'has':'zero'}">${dc?dc+'人':'—'}</span></td>
+      <td><span class="count-pill ${dc?'has':'zero'}">${dc ? dc + (dc === 1 ? 'p' : 'ps') : '—'}</span></td>
       ${dCells}
       <td class="note-td" title="${notes}">${notes}</td>
     </tr>`;
