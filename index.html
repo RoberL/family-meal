@@ -52,10 +52,11 @@
   }
   .header-left { display: flex; align-items: center; gap: 12px; }
   .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
-  .week-nav { display: flex; align-items: center; gap: 8px; }
+  .week-nav { display: flex; align-items: center; gap: 8px; position: relative; }
   .week-nav button { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 14px; cursor: pointer; color: var(--muted); font-family: inherit; transition: background 0.15s; }
   .week-nav button:hover { background: var(--bg); }
-  .week-label { font-size: 14px; font-weight: 500; min-width: 100px; text-align: center; }
+  .week-label { font-size: 14px; font-weight: 500; min-width: 100px; text-align: center; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; transition: color 0.15s; }
+  .week-label:hover { color: var(--text); }
 
   .view-tabs { display: flex; gap: 4px; }
   .view-tab { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: none; font-size: 13px; font-family: inherit; cursor: pointer; color: var(--muted); transition: all 0.15s; }
@@ -230,7 +231,9 @@
     <div class="logo">🍱The Kuo-sine Reservation Desk 郭家私廚</div>
     <div class="week-nav">
       <button onclick="changeWeek(-1)">‹</button>
-      <span class="week-label" id="weekLabel"></span>
+      <!-- 點擊此處即可彈出快速跳轉日曆 -->
+      <span class="week-label" id="weekLabel" onclick="document.getElementById('datePicker').showPicker()"></span>
+      <input type="date" id="datePicker" onchange="jumpToDate(this.value)" style="position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0;">
       <button onclick="changeWeek(1)">›</button>
     </div>
   </div>
@@ -404,6 +407,30 @@ function changeWeek(delta) {
   subscribe();
 }
 window.changeWeek = changeWeek;
+
+/* 🌟 新增：由日曆選定特定日期後，自動推算週別跳轉 */
+function jumpToDate(dateVal) {
+  if (!dateVal) return;
+  const targetDate = new Date(dateVal);
+  
+  // 計算目標日期的「該週週一」
+  const targetMonday = new Date(targetDate);
+  const day = targetDate.getDay() || 7;
+  targetMonday.setDate(targetDate.getDate() - day + 1);
+  targetMonday.setHours(0,0,0,0);
+  
+  // 計算「今天這週的週一」
+  const todayMonday = getMonday(0);
+  
+  // 計算兩者的週數差
+  const msDiff = targetMonday.getTime() - todayMonday.getTime();
+  const weeksDiff = Math.round(msDiff / (1000 * 60 * 60 * 24 * 7));
+  
+  weekOffset = weeksDiff;
+  localData = {};
+  subscribe();
+}
+window.jumpToDate = jumpToDate;
 
 function setMember(k) { 
   activeMember = k; 
