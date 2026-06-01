@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Family Meal</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght=400;500;700&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -16,15 +16,12 @@
     --text: #1a1a18;
     --muted: #6b6a65;
     --hint: #b0aea8;
-    --green-bg: #e8f5ee;
-    --green: #1a7a45;
-    --red-bg: #fdecea;
-    --red: #c0392b;
     --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04);
     
-    /* 預設的填寫區主題色（未選取或預設狀態） */
+    /* 動態變數 */
     --current-theme-bg: #ffffff;
     --current-theme-border: #e5e3dc;
+    --current-member-color: #1a7a45; /* 預設打勾顏色 */
   }
 
   body {
@@ -78,7 +75,7 @@
   .member-pill.active { border-width: 2px; font-weight: 500; }
   .member-pill:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
 
-  /* ✨ 方案三新增：正在編輯誰的視覺提示標籤 */
+  /* 正在編輯誰的視覺提示標籤 */
   .edit-hint-banner {
     font-size: 14px;
     font-weight: 700;
@@ -92,7 +89,6 @@
   }
 
   /* ── Fill Table ── */
-  /* ✨ 背景套用動態切換的低飽和度主題色 */
   .fill-card {
     background: var(--current-theme-bg);
     border-radius: 12px;
@@ -127,11 +123,13 @@
     transition: all 0.15s; color: var(--hint);
     font-weight: 400;
   }
+  /* ✨ 修改：打勾按鈕啟動時，直接變色為目前選定使用者的專屬人名色 */
   .toggle-btn.on {
-    background: var(--green-bg);
-    border-color: #a8d9bc;
-    color: var(--green);
+    background: #ffffff;
+    border-color: var(--current-member-color);
+    color: var(--current-member-color);
     font-weight: 700;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   }
   .toggle-btn:hover { transform: scale(1.05); }
 
@@ -158,7 +156,6 @@
   }
   .summary-header-title { font-size: 13px; font-weight: 500; color: var(--muted); }
 
-  /* RWD 彙整表防爆滾動容器 */
   .table-responsive {
     width: 100%;
     overflow-x: auto;
@@ -176,13 +173,16 @@
   .sum-table td { padding: 9px 8px; text-align: center; border-bottom: 1px solid var(--border); }
   .sum-table tr:last-child td { border-bottom: none; }
   .sum-table td.left { text-align: left; padding-left: 16px; font-weight: 500; }
-  .sum-yes { color: var(--green); font-weight: 700; }
+  
+  /* 彙整頁打勾樣式 */
+  .sum-yes { font-weight: 700; }
   .sum-no  { color: var(--hint); }
+  
   .count-pill {
     display: inline-block; padding: 2px 8px; border-radius: 10px;
     font-size: 12px; font-weight: 600;
   }
-  .count-pill.has { background: var(--green-bg); color: var(--green); }
+  .count-pill.has { background: #e8f5ee; color: #1a7a45; }
   .count-pill.zero { background: var(--bg); color: var(--hint); }
   .meal-divider { border-right: 2px solid var(--border); }
   .note-td { font-size: 11px; color: var(--muted); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; padding-left: 8px; }
@@ -198,7 +198,7 @@
     z-index: 99;
   }
   .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--hint); flex-shrink: 0; }
-  .status-dot.synced { background: var(--green); }
+  .status-dot.synced { background: #1a7a45; }
   .status-dot.syncing { background: #f0a500; animation: pulse 1s infinite; }
 
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
@@ -236,12 +236,14 @@
 </header>
 
 <main>
+  <!-- Fill View -->
   <div id="fillView">
     <div class="member-section">
       <div class="section-label">Who r u?</div>
       <div class="member-pills" id="memberPills"></div>
     </div>
     
+    <!-- 動態提示文字區 -->
     <div class="edit-hint-banner" id="editHintBanner"></div>
 
     <div class="fill-card" id="fillCard">
@@ -259,6 +261,7 @@
     </div>
   </div>
 
+  <!-- Summary View -->
   <div id="summaryView" class="hidden">
     <div class="summary-card">
       <div class="summary-header">
@@ -294,12 +297,12 @@ const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
 // ══════════════════════════════════════════════════
-/* ✨ 方案三優化：獨立定義每個人的「超淡粉嫩背景色」與「微淡邊框色」，與按鈕的高飽和度拉開區隔 */
+/* ✨ 修改：更新為您指定的高質感色系（黑、海軍藍、墨綠、粉紅）與低飽和極淺底色 */
 const MEMBERS = [
-  { key: 'A', name: 'Sam',   color: '#000000', bg: '#ddeaf7', themeBg: '#f2f6fa', themeBorder: '#d0dae5' },
-  { key: 'B', name: 'Joyce',   color: '#0080FF', bg: '#d6f0e7', themeBg: '#f0f9f6', themeBorder: '#cfe5de' },
-  { key: 'C', name: 'Anisa',   color: '#00DB00', bg: '#fbe5dc', themeBg: '#fdf5f2', themeBorder: '#f0ded7' },
-  { key: 'D', name: 'Tom',    color: '#FF359A', bg: '#ece8f8', themeBg: '#f6f4fa', themeBorder: '#e2dde8' },
+  { key: 'A', name: 'Sam',   color: '#111111', bg: '#f1f1f1', themeBg: '#fafafa', themeBorder: '#e0e0e0' }, // 經典黑 + 極簡灰底
+  { key: 'B', name: 'Joyce',   color: '#1a365d', bg: '#e2ebf5', themeBg: '#f4f7fa', themeBorder: '#cfdae6' }, // 海軍藍 + 舒適藍灰底
+  { key: 'C', name: 'Anisa',   color: '#1c3d27', bg: '#e2ece6', themeBg: '#f3f7f5', themeBorder: '#ccdcd2' }, // 墨綠色 + 清新綠灰底
+  { key: 'D', name: 'Tom',    color: '#d53f8c', bg: '#fbe7f0', themeBg: '#fdf6fa', themeBorder: '#f3d5e4' }, // 質感粉紅 + 柔和極淡粉底
 ];
 const DAYS = ['Mon.','Tue.','Wed.','Thu.','Fri.','Sat.','Sun.'];
 
@@ -378,7 +381,7 @@ function toggleVal(member, di, meal) {
 }
 function saveNote(member, di, val) {
   if (!localData[member])     localData[member] = {};
-  if (!localData[member][di]) localData[member][di] = {};
+  if (!localData[member][di]) { localData[member][di] = {}; }
   localData[member][di].note = val;
   writeVal(`${dbPath(weekOffset)}/${member}/${di}/note`, val || null);
 }
@@ -400,7 +403,6 @@ function changeWeek(delta) {
 }
 window.changeWeek = changeWeek;
 
-/* ✨ 方案三優化：當使用者切換成員時，動態更新 CSS 全局變數與提示 Banner */
 function setMember(k) { 
   activeMember = k; 
   updateThemeStyles();
@@ -411,19 +413,18 @@ window.setMember = setMember;
 window.toggleVal  = toggleVal;
 window.saveNote   = saveNote;
 
-/* ✨ 方案三新增：更換填寫卡片主題色與提示橫幅的函式 */
+/* ✨ 修改：切換成員時，同步將人名色傳遞給 CSS 變數，控制打勾 (✓) 的顏色 */
 function updateThemeStyles() {
   const currentMember = MEMBERS.find(m => m.key === activeMember);
   if (currentMember) {
-    // 動態更新 CSS 變數（控制填寫卡片的背景與邊框）
     const root = document.documentElement;
     root.style.setProperty('--current-theme-bg', currentMember.themeBg);
     root.style.setProperty('--current-theme-border', currentMember.themeBorder);
+    root.style.setProperty('--current-member-color', currentMember.color); // 控制打勾的顏色
 
-    // 更新上方的醒目文字提示
     const banner = document.getElementById('editHintBanner');
     banner.style.backgroundColor = currentMember.bg;
-    banner.style.color = currentMember.color === '#000000' ? '#333333' : currentMember.color;
+    banner.style.color = currentMember.color;
     banner.innerHTML = `✍️ 正在修改 <span style="text-decoration: underline; margin: 0 2px;">${currentMember.name}</span> 的用餐計畫`;
   }
 }
@@ -432,7 +433,7 @@ function updateThemeStyles() {
 function renderPills() {
   document.getElementById('memberPills').innerHTML = MEMBERS.map(m => {
     const active = m.key === activeMember;
-    const style  = active ? `border-color:${m.color}; background:${m.bg};` : '';
+    const style  = active ? `border-color:${m.color}; background:${m.bg}; color:${m.color};` : '';
     return `<button class="member-pill ${active?'active':''}" style="${style}" onclick="setMember('${m.key}')">
       <span class="dot" style="background:${m.color}"></span>${m.name}
     </button>`;
@@ -478,8 +479,11 @@ function renderSummary() {
     const dateStr = `${dates[di].getMonth()+1}/${dates[di].getDate()}`;
     const lc = MEMBERS.filter(m => getVal(m.key, di, 'L')).length;
     const dc = MEMBERS.filter(m => getVal(m.key, di, 'D')).length;
-    const lCells = MEMBERS.map(m => `<td>${getVal(m.key,di,'L') ? '<span class="sum-yes">✓</span>' : '<span class="sum-no">—</span>'}</td>`).join('');
-    const dCells = MEMBERS.map(m => `<td>${getVal(m.key,di,'D') ? '<span class="sum-yes">✓</span>' : '<span class="sum-no">—</span>'}</td>`).join('');
+    
+    /* ✨ 修改：彙整總表（Summary）的打勾勾 (✓) 也與該人名專屬色同步 */
+    const lCells = MEMBERS.map(m => `<td>${getVal(m.key,di,'L') ? `<span class="sum-yes" style="color:${m.color}">✓</span>` : '<span class="sum-no">—</span>'}</td>`).join('');
+    const dCells = MEMBERS.map(m => `<td>${getVal(m.key,di,'D') ? `<span class="sum-yes" style="color:${m.color}">✓</span>` : '<span class="sum-no">—</span>'}</td>`).join('');
+    
     const notes  = MEMBERS.map(m => { const n=getNote(m.key,di); return n?`${m.name}：${n}`:''; }).filter(Boolean).join(' · ');
     html += `<tr>
       <td class="left">${day} <span style="font-size:11px;color:var(--hint)">${dateStr}</span></td>
@@ -497,7 +501,7 @@ function renderSummary() {
 
 function render() {
   document.getElementById('weekLabel').textContent = fmtLabel(weekOffset);
-  updateThemeStyles(); // 確保重新整理時顏色同步
+  updateThemeStyles(); 
   renderPills();
   renderFill();
   renderSummary();
